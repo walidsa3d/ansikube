@@ -1,0 +1,24 @@
+---
+role_name_check: 1
+dependency:
+  name: galaxy
+  options:
+    ignore-errors: true
+driver:
+  name: docker
+platforms:
+  - name: jammy
+    image: eniocarboni/docker-ubuntu-systemd:latest
+provisioner:
+  name: ansible
+verifier:
+  name: testinfra
+scenario:
+  name: default
+  create_sequence:
+    - create
+    - prepare
+  check_sequence:
+    - destroy
+    - dependency
+    - create

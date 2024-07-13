@@ -1,0 +1,10 @@
+---
+- name: Configure system 
+  include_tasks: system.yml 
+
+- name: Install Docker
+  include_tasks: docker.yml
+
+- name: Install Kubernetes
+  include_tasks: kube.yml 
+

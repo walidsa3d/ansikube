@@ -1,0 +1,64 @@
+- name: Add Kubernetes apt-key
+  get_url:
+    url: "https://pkgs.k8s.io/core:/stable:/v{{kube_version}}/deb/Release.key"
+    dest: /etc/apt/trusted.gpg.d/kubernetes.asc
+    mode: '0644'
+
+
+- name: Add apt repository for Kubernetes
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/trusted.gpg.d/kubernetes.asc] https://pkgs.k8s.io/core:/stable:/v{{kube_version}}/deb/ /"
+    state: present
+    filename: kubernetes.list
+
+- name: Install Kubernetes binaries
+  apt:
+    name: "{{item}}"
+    state: present
+    update_cache: true
+  with_items:
+    - kubelet 
+    - kubeadm 
+    - kubectl
+
+- name: Create Containerd directory
+  file:
+    path: /etc/containerd
+    state: directory
+
+- name: Add Containerd configuration
+  Shell: /usr/bin/containerd config default > /etc/containerd/config.toml
+    
+- name: Configuring the Systemd Cgroup driver for Containerd
+  lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '            SystemdCgroup = false'
+    line: '            SystemdCgroup = true'
+    
+- name: Enable the Containerd service and start it
+  systemd:
+    name: containerd
+    state: restarted
+    enabled: true
+    daemon-reload: true
+
+- name: Copy config
+  command: cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+
+- name: Change ownership
+  shell: chown $(id -u):$(id -g) $HOME/.kube/config
+
+- name: Install kubectl and etcd-client
+  package:
+    name: "{{item}}"
+    state: present
+  with_items:
+      - kubectl
+      - etcd-client
+  when: node_type == 'master'
+
+- name: Ensure kubelet is started and enabled at boot.
+  service:
+    name: kubelet
+    state: started
+    enabled: true

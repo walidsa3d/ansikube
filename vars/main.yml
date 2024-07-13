@@ -1,0 +1,8 @@
+---
+# vars file for ansikube
+kubernetes_packages:
+  - kubelet
+  - kubectl
+  - kubeadm
+  - docker
+  - iproute-tc

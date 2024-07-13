@@ -1,0 +1,4 @@
+---
+# defaults file for ansikube
+node_type: "master"
+kube_version: 1.29
